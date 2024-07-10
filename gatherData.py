@@ -153,7 +153,7 @@ for i in range(0,4):
   df[nameList[i]] = df['Date'].map(dict)
   df.to_csv('gather.csv', index=False)
   print(df)
-"""
+
 ##    주가 데이터 추가
 # df1 = pd.read_csv('./지표/삼성전자주가1.csv')
 # df1['일자'] = pd.to_datetime(df1['일자'], format='%Y%m%d').dt.strftime('%Y-%m-%d')
@@ -173,3 +173,7 @@ for i in range(1,10):
   df[nameList[i-1]] = df['Date'].map(dict)
   df.to_csv('gather.csv', index=False)
   print(df)
+"""
+df = pd.read_csv('gather.csv')
+del df['NotUse']
+df.to_csv('gather.csv')
