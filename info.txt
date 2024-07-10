@@ -1,0 +1,3 @@
+금리 : https://www.bok.or.kr/portal/singl/baseRate/list.do?dataSeCd=01&menuNo=200643
+국제 원유 : https://www.opinet.co.kr/glopcoilSelect.do
+국제 금 시세 : http://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC0201060207
