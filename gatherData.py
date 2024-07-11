@@ -173,7 +173,98 @@ for i in range(1,10):
   df[nameList[i-1]] = df['Date'].map(dict)
   df.to_csv('gather.csv', index=False)
   print(df)
-"""
+
 df = pd.read_csv('gather.csv')
 del df['NotUse']
 df.to_csv('gather.csv')
+
+##    토, 일 지우기
+df = pd.read_csv('gather_backup.csv')
+df = df[~df['Day'].isin([5, 6])]
+df.to_csv('gather.csv')
+
+
+##    결측치 처리하기
+df = pd.read_csv('gather.csv')
+df[['CL_Close','BZ_Close','NG_Close','GC_Close']] = df[['CL_Close','BZ_Close','NG_Close','GC_Close']].fillna(-99)
+del df['STMIR_C']
+print(len(df))
+df = df.dropna()
+print(len(df))
+print(df.isnull().any(axis=1).sum())
+df.to_csv('gather.csv')
+
+##    unnammed 열 처리하기
+df = pd.read_csv('gather.csv')
+df = df.iloc[:,3:]
+df.set_index('Date', inplace=True)
+print(df)
+df.to_csv('gather.csv')
+
+##    라벨링하기
+df = pd.read_csv('gather.csv')
+df.set_index('Date', inplace=True)
+def determineLabel(stock_ratio):
+    if stock_ratio > 0:
+        return 1
+    elif stock_ratio <= 0:
+        return 0
+df['label'] = df['Stock_Ratio'].shift(-1).apply(determineLabel)
+df.loc[df.index[-1], 'label'] = 1
+label_counts = df['label'].value_counts(normalize=True)
+print(label_counts)
+df.to_csv('gather.csv')
+
+df = pd.read_csv('gather.csv')
+df.set_index('Date', inplace=True)
+print(round(df['Stock_Market'].describe(),2))
+
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+
+df = pd.read_csv('gather.csv')
+df.set_index('Date',inplace=True)
+
+# mmScaler = MinMaxScaler()
+# mmScaled = mmScaler.fit_transform(df)
+# mmScaled = pd.DataFrame(mmScaled, columns = df.columns)
+# print(round(mmScaled.describe(),2))
+
+X_train, X_test, y_train, y_test = train_test_split(df.drop('label',axis=1),df['label'],test_size=0.2,random_state=42)
+mmScaler = MinMaxScaler()
+X_train_Scaled = mmScaler.fit_transform(X_train)
+X_test_Scaled = mmScaler.fit_transform(X_test)
+
+##    -99 지우기
+df = pd.read_csv('gather.csv')
+print(len(df))
+# df = df[~df['Day'].isin([5, 6])]
+# 'CL_Close','BZ_Close','NG_Close','GC_Close'
+df = df[~df['CL_Close'].isin([-99])]
+print(len(df))
+df = df[~df['BZ_Close'].isin([-99])]
+print(len(df))
+df = df[~df['NG_Close'].isin([-99])]
+print(len(df))
+df = df[~df['GC_Close'].isin([-99])]
+print(len(df))
+print(df)
+df.to_csv('gather.csv')
+"""
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+df = pd.read_csv('gather.csv')
+# df['Close_Sum'] = df['DJI_Close']+df['KOSPI']+df['KOSDAQ']
+# df['Stock_S/C'] = df['Stock_Start']+df['Stock_Close']
+# df['Stock_V/M'] = (df['Stock_Vol']+df['Stock_Money'])/1000000
+# df['Stock'] = df['Stock_S/C'] / df['Stock_V/M']
+df = df[['Date','Stock_Close','Stock_Sum','Stock_Ratio','Stock_Start','Stock_High','Stock_Low','Stock_Vol','Stock_Money','Stock_Market','label']]
+# df = df.round(3)
+# print(df)
+plt.figure(figsize=(15, 10))
+sns.heatmap(df.corr(), cmap='coolwarm', vmin=-1, vmax=1, annot=True, fmt=".2f", annot_kws={"size": 8})
+plt.show()
+df.to_csv('gather_corr.csv')
