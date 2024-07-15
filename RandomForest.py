@@ -1,28 +1,37 @@
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 import pandas as pd
 import numpy as np
 
-df = pd.read_csv('gather_corr.csv')
-df = df.iloc[:,1:]
-df.set_index('Date',inplace=True)
-X_train, X_test, y_train, y_test = train_test_split(df.drop('label',axis=1),df['label'],test_size=0.2,random_state=42)
-mmScaler = MinMaxScaler()
-X_train_Scaled = mmScaler.fit_transform(X_train)
-X_test_Scaled = mmScaler.fit_transform(X_test)
+# 데이터 로드 및 전처리
+df = pd.read_csv('ready.csv')
+df = df.iloc[:, 1:]
+print(df)
 
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import mean_squared_error, mean_absolute_error
-from sklearn.metrics import r2_score
+# 데이터 분리
+X_train, X_test, y_train, y_test = train_test_split(df.drop('Column49', axis=1), df['Column49'], test_size=0.2, random_state=42)
 
-model = RandomForestClassifier(random_state=42)
-model.fit(X_train_Scaled, y_train)
-pred = model.predict(X_test_Scaled)
-mse = mean_squared_error(y_test, pred)
-mae = mean_absolute_error(y_test, pred)
+# 스케일링
+scaler = StandardScaler()  # MinMaxScaler(), RobustScaler(), StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
-print(f"Mean Squared Error: {mse}")
-print(f"Mean Absolute Error: {mae}")
-r2 = r2_score(y_test, pred)
-print(f"R²: {r2}")
+# 랜덤 포레스트 분류 모델 학습
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train_scaled, y_train)
+
+# 예측
+pred = model.predict(X_test_scaled)
+
+# 평가
+accuracy = accuracy_score(y_test, pred)
+conf_matrix = confusion_matrix(y_test, pred)
+class_report = classification_report(y_test, pred)
+
+print(f"Accuracy: {accuracy}")
+print("Confusion Matrix:")
+print(conf_matrix)
+print("Classification Report:")
+print(class_report)
